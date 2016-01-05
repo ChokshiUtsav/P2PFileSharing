@@ -5,7 +5,7 @@ import java.net.*;
 
 class UserInputThread implements Runnable{
 	private Thread t;
-	private static String TorrentServerAddress = "127.0.0.1";
+	private static String TorrentServerAddress = "10.2.133.142";
 	private static int TorrentServerPort = 15000;
 	private static int TorrentClientPort = 16000;
 
