@@ -7,7 +7,7 @@ class UserInputThread implements Runnable{
 	private Thread t;
 	private static String TorrentServerAddress = "10.2.133.142";
 	private static int TorrentServerPort = 15000;
-	private static int TorrentClientPort = 16000;
+	private static int TorrentClientPort = 16200;
 
 	public void start(){
 		if(t == null){
@@ -96,33 +96,27 @@ class UserInputThread implements Runnable{
 						Socket socket = new Socket(address,UserInputThread.TorrentClientPort);
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 						oos.writeObject(fileName);
-						
-						int filesize=1022386; 
-			            int bytesRead;
-			            int currentTot = 0;
-			            byte [] bytearray  = new byte [filesize];
-			            InputStream is = socket.getInputStream();
-			            FileOutputStream fos = new FileOutputStream(fileName+"_torrent"+".mp3");
-			            BufferedOutputStream bos = new BufferedOutputStream(fos);
-			            bytesRead = is.read(bytearray,0,bytearray.length);
-			            currentTot = bytesRead;
 
-			            do{
-			               bytesRead =
-			                  is.read(bytearray, currentTot, (bytearray.length-currentTot));
-			               if(bytesRead >= 0) currentTot += bytesRead;
-			            }
-			            while(bytesRead > -1);
+						byte [] bytearray  = new byte [4096];
+						DataInputStream dis = new DataInputStream(socket.getInputStream());
+						FileOutputStream fos = new FileOutputStream(fileName+"_torrent.mp3");
+						DataOutputStream dos = new DataOutputStream(fos);
+						int bytesRead = 0;
 
-			            bos.write(bytearray, 0 , currentTot);
-			            bos.flush();
-			            bos.close();
+						while((bytesRead=dis.read(bytearray))>0){
+		        			dos.write(bytearray,0,bytesRead);
+		        		}
+
+		        		dos.flush();
+		        		dis.close();
+		        		dos.close();
 			            socket.close();
 			 		}
 				}
 			}
 			catch(IOException e){
-				System.out.println("IOException!!");
+				System.out.println("IOException1!!");
+				e.printStackTrace();
 			}
 			catch(Exception e){
 				System.out.println("Exception!!");	
@@ -135,7 +129,7 @@ class FileTransferThread implements Runnable{
 	private Thread t;
 	private static String TorrentServerAddress = "127.0.0.1";
 	private static int TorrentServerPort = 15000;
-	private static int TorrentClientPort = 16000;
+	private static int TorrentClientPort = 16200;
 
 	public void start(){
 		if(t == null){
@@ -150,12 +144,20 @@ class FileTransferThread implements Runnable{
 	    DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
 
 		try{
+
 			//Creating socket for handling other peer's request
 			ServerSocket server = new ServerSocket(FileTransferThread.TorrentClientPort);
 
 			while(true){
+
+				if(PeerAgent.exitFlag == 1){
+             		break;
+             	 }
+
 				//creating socket and waiting for client connection
 				Socket socket = server.accept();
+
+				 //If user executes Exit command
 
 				File fout = new File("agentlog.txt");
           		FileOutputStream fos = new FileOutputStream(fout);
@@ -175,34 +177,38 @@ class FileTransferThread implements Runnable{
 				
 				//Creating file stream
 				File transferFile = new File (fileName);
-		        byte [] bytearray  = new byte [(int)transferFile.length()];
+		        byte [] bytearray  = new byte [4096];
 		        FileInputStream fin = new FileInputStream(transferFile);
-		        BufferedInputStream bin = new BufferedInputStream(fin);
-		        bin.read(bytearray,0,bytearray.length);
-		        OutputStream os = socket.getOutputStream();
-
+		        DataInputStream dis = new DataInputStream(fin);
+		        DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+		        int bytesRead = 0;
+		       		        
 		        log = "File transfer intiated";
 		        bw.write(log);
             	bw.newLine();
-
-		        //Writing file to output stream
-		        os.write(bytearray,0,bytearray.length);
-		        os.flush();
-		        bin.close();
+	
+		        while((bytesRead=dis.read(bytearray))>0){
+		        	dos.write(bytearray,0,bytesRead);
+		        }
 
 		        log = "File transfer completed";
 		        bw.write(log);
             	bw.newLine();
 
+		        //Writing file to output stream	        
+		        dos.flush();
+		        dis.close();
+		        dos.close();
             	bw.close();
 		        socket.close();
 			}
 		}
 		catch(IOException e){
-			System.out.println("IOException!!");
+			System.out.println("IOException2!!");
+			e.printStackTrace();
 		}
 		catch(Exception e){
-			System.out.println("Exception!!");	
+			System.out.println("Exception2!!");	
 		}
 	}
 }
