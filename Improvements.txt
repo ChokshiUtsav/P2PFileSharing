@@ -1,6 +1,9 @@
 Followin imporvements can be done:
 1) Currently, server program doesn't check for active agents/peers.
 Solution : I have made PeerAgentAvl.java which checks availibility of port on remote machine.
-           This logic can be used to solve the limitation.
+           This logic can be incorporated easily into Server.java to solve above limitation.
 
- 
+2) Currently, If multiple peers have same file, then peer can download from single peer only i.e. Data chuncking is not available.
+Solution : Here is good link that explains how BitTorrent handles such thing : 
+	   http://stackoverflow.com/questions/3941199/how-does-the-bittorrent-protocol-handle-the-data-chunks 
+	   https://en.wikipedia.org/wiki/BitTorrent
