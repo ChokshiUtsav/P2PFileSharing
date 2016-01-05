@@ -36,7 +36,7 @@ class UserInputThread implements Runnable{
 					String commandName = scan.nextLine();
 					
 					if(commandName.equals("Exit")){
-						TorrentAgent_v2.exitFlag = 1;
+						PeerAgent.exitFlag = 1;
 						break;
 					}
 
@@ -207,7 +207,7 @@ class FileTransferThread implements Runnable{
 	}
 }
 
-public class TorrentAgent_v2{
+public class PeerAgent{
 
 	//Flag becomes '1' when user fires 'Exit' Command.
 	public static int exitFlag = 0;

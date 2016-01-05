@@ -4,7 +4,7 @@ import java.util.*;
 import java.text.*;
 
   
-class TorrentServer_v1{
+class Server{
 
   public static void main(String args[]) throws Exception { 
     
