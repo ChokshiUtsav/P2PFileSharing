@@ -1,0 +1,6 @@
+Followin imporvements can be done:
+1) Currently, server program doesn't check for active agents/peers.
+Solution : I have made PeerAgentAvl.java which checks availibility of port on remote machine.
+           This logic can be used to solve the limitation.
+
+ 
