@@ -2,10 +2,13 @@ import java.util.*;
 import java.io.*;
 import java.text.*;
 import java.net.*;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+
 
 class UserInputThread implements Runnable{
 	private Thread t;
-	private static String TorrentServerAddress = "10.2.133.142";
+	private static String TorrentServerAddress = "127.0.0.1";
 	private static int TorrentServerPort = 15000;
 	private static int TorrentClientPort = 16200;
 
@@ -19,6 +22,10 @@ class UserInputThread implements Runnable{
 	public void run(){
 
 		try{
+				Scanner scan = new Scanner(System.in);
+				System.out.println("Please enter torrent server IP address to connect with :");
+				UserInputThread.TorrentServerAddress = scan.nextLine();
+
 				//Intializing screen
 				System.out.println("****************************************************************");
 				System.out.println("Following are list of functionalities provided by torrent : ");
@@ -28,7 +35,7 @@ class UserInputThread implements Runnable{
 				System.out.println("4.Exit");		
 				System.out.println("****************************************************************");
 
-				Scanner scan = new Scanner(System.in);
+				
 				while(true){
 
 					//Scanning for user input
@@ -62,15 +69,17 @@ class UserInputThread implements Runnable{
 						try {
 			           		clientSocket.receive(receivePacket);
 			           		if(commandName.equals("Search")){
-			           			String[] peerIPAddress = new String(receivePacket.getData(),0,receivePacket.getLength()).split(";");
-			           			if(peerIPAddress[0].equals("Not Found")){
-			           				System.out.println("Sorry, No peers have requested file");
+			           			String[] peerAddress = new String(receivePacket.getData(),0,receivePacket.getLength()).split(";");
+			           			if(peerAddress[0].equals("Not Found")){
+			           				System.out.println("Sorry, No peers have the requested file");
 			           			}
 			           			else{
 			           				System.out.println("Please use Download command to get file from peer.");
 			           				System.out.println("Following peers have file : " + fileName);
-			           				for(String s : peerIPAddress){
-			           					System.out.println(s);
+			           				for(String s : peerAddress){
+			           					String[] temp = s.split("#");
+			           					System.out.println("IPAddress : "+ temp[0]);
+			           					System.out.println("Location : "+ temp[1]);	
 			           				}
 			           			}
 			           		}
@@ -85,7 +94,7 @@ class UserInputThread implements Runnable{
 			 		}
 
 			 		if(commandName.equals("Download")){
-			 			System.out.println("Please enter file-name to be downloaded : ");
+			 			System.out.println("Please enter complete file-path of file to be downloaded : ");
 						String fileName = scan.nextLine();
 						//System.out.println(fileName);
 
@@ -97,9 +106,12 @@ class UserInputThread implements Runnable{
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 						oos.writeObject(fileName);
 
+
+						Path p = Paths.get(fileName);
+						String newFileName = p.getFileName().toString();
 						byte [] bytearray  = new byte [4096];
 						DataInputStream dis = new DataInputStream(socket.getInputStream());
-						FileOutputStream fos = new FileOutputStream(fileName+"_torrent.mp3");
+						FileOutputStream fos = new FileOutputStream(newFileName);
 						DataOutputStream dos = new DataOutputStream(fos);
 						int bytesRead = 0;
 
@@ -127,7 +139,7 @@ class UserInputThread implements Runnable{
 
 class FileTransferThread implements Runnable{
 	private Thread t;
-	private static String TorrentServerAddress = "127.0.0.1";
+	//private static String TorrentServerAddress = "10.2.133.142";
 	private static int TorrentServerPort = 15000;
 	private static int TorrentClientPort = 16200;
 
@@ -157,10 +169,8 @@ class FileTransferThread implements Runnable{
 				//creating socket and waiting for client connection
 				Socket socket = server.accept();
 
-				 //If user executes Exit command
-
 				File fout = new File("agentlog.txt");
-          		FileOutputStream fos = new FileOutputStream(fout);
+          		FileOutputStream fos = new FileOutputStream(fout,true);
           		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
           		Date dateobj = new Date();
           		bw.write(df.format(dateobj));
@@ -170,7 +180,6 @@ class FileTransferThread implements Runnable{
 				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 				String fileName = (String) ois.readObject();
 
-				//String log = "Client " + clientIPAddress.toString() + " requested " + fileName;
 				String log = "Peer requested " + fileName;
             	bw.write(log);
             	bw.newLine();

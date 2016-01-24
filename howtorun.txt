@@ -1,0 +1,11 @@
+On Peer-machine :
+javac PeerAgent.java
+java PeerAgent
+
+On Server-machine :
+javac Server.java
+java Server
+
+Note : Files are copied to same location where PeerAgent.java is located.
+     : Please check two screenshots for trial runs of PeerAgent.java.
+     : Every operation is logged on agentlog.txt and serverlog.txt at peer-machine and server-machine respectively.

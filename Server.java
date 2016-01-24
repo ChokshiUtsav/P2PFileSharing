@@ -2,18 +2,18 @@ import java.io.*;
 import java.net.*; 
 import java.util.*;
 import java.text.*;
+import java.nio.file.Paths;
+import java.nio.file.Path;
 
-  
 class Server{
 
   public static void main(String args[]) throws Exception { 
     
-    //Hashmap that keeps track of peers and files they shared i.e. maps file-names to IPAddresses. 
+    //Hashmap that keeps track of peers and files they have shared i.e. maps file-names to IPAddresses. 
     Map<String,String> tracker = new HashMap<String,String>();
    
     //For log file
     DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
-
 
      try{ 
       int serverPort = 15000;
@@ -28,13 +28,13 @@ class Server{
           serverSocket.receive(receivePacket); 
           String[] rdata = new String(receivePacket.getData(),0,receivePacket.getLength()).split(":");
           String command = rdata[0];
-          String fileName = rdata[1];
+          String completeFileName = rdata[1];
           InetAddress clientIPAddress = receivePacket.getAddress(); 
           int clientPort = receivePacket.getPort(); 
 
           //Opening a log file.
           File fout = new File("serverlog.txt");
-          FileOutputStream fos = new FileOutputStream(fout);
+          FileOutputStream fos = new FileOutputStream(fout,true);
           BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
           Date dateobj = new Date();
           bw.write(df.format(dateobj));
@@ -44,12 +44,14 @@ class Server{
           String sdata = null;
           if(command.equals("Search")){
             
-            String log = "Client " + clientIPAddress.toString() + " requested " + fileName;
+            //Writing to Log file
+            String log = "Client " + clientIPAddress.toString() + " requested " + completeFileName;
             bw.write(log);
             bw.newLine();
 
-            if(tracker.containsKey(fileName)){
-              sdata = tracker.get(fileName);
+            //Searching for requested file
+            if(tracker.containsKey(completeFileName)){
+              sdata = tracker.get(completeFileName);
               bw.write("Requested file found");
               bw.newLine();
             }
@@ -63,18 +65,23 @@ class Server{
           //Updating tracker using data received from receiver
           if(command.equals("Share")){
 
+            Path p = Paths.get(completeFileName);
+            String fileName = p.getFileName().toString();
+
+            //Writing to Log file
             String log = "Client " + clientIPAddress.toString() + " shared " + fileName;
             bw.write(log);
             bw.newLine();
 
             sdata = "Shared";
 
+            //Adding shared file
             if(tracker.containsKey(fileName)){
-              String temp = tracker.get(fileName).concat(";" + clientIPAddress.toString());
+              String temp = tracker.get(fileName).concat(";" + clientIPAddress.toString()+"#"+completeFileName);
               tracker.put(fileName,temp);
             }
             else{
-              String temp = clientIPAddress.toString();
+              String temp = clientIPAddress.toString()+"#"+completeFileName;
               tracker.put(fileName,temp);
             } 
           }
